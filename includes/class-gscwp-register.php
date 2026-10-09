@@ -84,7 +84,12 @@ class GSCWP_Register
         delete_transient('gscwp_register_cooldown');
         GSCWP_AdminPage::setNotice('Your site is connected to the GSC dashboard.', 'success');
 
-        return ['ok' => true, 'message' => 'registered', 'instance_id' => $instanceId];
+        return [
+            'ok'          => true,
+            'message'     => 'registered',
+            'instance_id' => $instanceId,
+            'secret'      => $secret,
+        ];
     }
 
     /** @return array{instance_id?:string, site_url?:string, registered_at?:string, plugin_version?:string} */
