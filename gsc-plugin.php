@@ -19,12 +19,21 @@ define('GSCWP_VERSION', '1.0.0');
 
 /**
  * The hosted panel this plugin connects to. Override in wp-config.php
- * (define before require of wp-settings) when pointing at a staging
- * panel; production default below.
+ * when pointing at a staging panel (a full https:// URL, e.g.
+ * http://127.0.0.1:8091/). A filesystem path or anything that is not a
+ * full http(s) URL is rejected here and the production default wins -
+ * a wrong override used to build links like
+ * https://makkpressapps.com/var/www/html/.../setup-wizard.php
  */
-if (!defined('GSCWP_PANEL_URL')) {
-    define('GSCWP_PANEL_URL', 'https://makkpressapps.com/wordpress/googlesearchconsole/');
+$gscwpDefaultPanel = 'https://makkpressapps.com/wordpress/googlesearchconsole/';
+if (defined('GSCWP_PANEL_URL')
+    && is_string(GSCWP_PANEL_URL)
+    && preg_match('#^https?://[a-z0-9.-]+(:\d+)?(/|$)#i', GSCWP_PANEL_URL)) {
+    define('GSCWP_PANEL_URL_FINAL', rtrim(GSCWP_PANEL_URL, '/') . '/');
+} else {
+    define('GSCWP_PANEL_URL_FINAL', $gscwpDefaultPanel);
 }
+unset($gscwpDefaultPanel);
 
 define('GSCWP_OPTION_KEY', 'gscwp_instance');
 define('GSCWP_MIN_PHP', '7.4');

@@ -25,7 +25,7 @@ class GSCWP_ApiClient
      */
     public static function post(string $path, array $body): array
     {
-        $url  = untrailingslashit(GSCWP_PANEL_URL) . '/' . ltrim($path, '/');
+        $url  = untrailingslashit(GSCWP_PANEL_URL_FINAL) . '/' . ltrim($path, '/');
 
         $response = wp_remote_post($url, [
             'timeout'     => self::TIMEOUT,
@@ -59,6 +59,6 @@ class GSCWP_ApiClient
      */
     public static function panelUrl(string $path = ''): string
     {
-        return untrailingslashit(GSCWP_PANEL_URL) . '/' . ltrim($path, '/');
+        return untrailingslashit(GSCWP_PANEL_URL_FINAL) . '/' . ltrim($path, '/');
     }
 }
