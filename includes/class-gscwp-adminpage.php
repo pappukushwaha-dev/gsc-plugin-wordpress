@@ -110,6 +110,39 @@ class GSCWP_AdminPage
                         <?php endif; ?>
                     </td>
                 </tr>
+
+                <?php if ($registered): ?>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Verification', 'gscwp'); ?></th>
+                    <td>
+                        <?php if (GSCWP_Verify::seoPluginActive()): ?>
+                            <span class="description"><?php esc_html_e('Handled by your SEO plugin (Yoast/RankMath/AIOSEO) - the plugin stays out of the way.', 'gscwp'); ?></span>
+                        <?php elseif (GSCWP_Verify::token() !== ''): ?>
+                            <span style="color:#00a32a;font-weight:600;"><?php esc_html_e('Verification tag is live on your site', 'gscwp'); ?></span>
+                        <?php else: ?>
+                            <span class="description"><?php esc_html_e('Waiting for the token - open the dashboard wizard and complete verification.', 'gscwp'); ?></span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('Sitemap', 'gscwp'); ?></th>
+                    <td>
+                        <?php $map = GSCWP_Sync::meta()['sitemap_url'] ?? ''; ?>
+                        <?php if ($map !== ''): ?>
+                            <code><?php echo esc_html($map); ?></code>
+                        <?php else: ?>
+                            <span class="description"><?php esc_html_e('Not detected yet - synced from your site on the next dashboard visit.', 'gscwp'); ?></span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e("Content pings today", 'gscwp'); ?></th>
+                    <td>
+                        <?php echo esc_html((string) GSCWP_Ping::todayCount()); ?>
+                        <span class="description">/ <?= esc_html((string) GSCWP_Ping::FREE_DAILY_LIMIT); ?></span>
+                    </td>
+                </tr>
+                <?php endif; ?>
             </table>
 
             <form method="post" style="margin-top:1rem;">

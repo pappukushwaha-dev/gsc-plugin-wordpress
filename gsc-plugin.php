@@ -40,6 +40,9 @@ define('GSCWP_MIN_PHP', '7.4');
 
 require_once __DIR__ . '/includes/class-gscwp-apiclient.php';
 require_once __DIR__ . '/includes/class-gscwp-register.php';
+require_once __DIR__ . '/includes/class-gscwp-sync.php';
+require_once __DIR__ . '/includes/class-gscwp-verify.php';
+require_once __DIR__ . '/includes/class-gscwp-ping.php';
 require_once __DIR__ . '/includes/class-gscwp-adminpage.php';
 
 /**
@@ -78,4 +81,13 @@ register_activation_hook(__FILE__, 'gscwp_activate');
  */
 add_action('admin_init', function () {
     GSCWP_Register::maybe_register();
+    GSCWP_Sync::maybe_sync();
 });
+
+/**
+ * The verification meta tag, late in wp_head so plugins that print
+ * their own head output run first.
+ */
+add_action('wp_head', ['GSCWP_Verify', 'printMeta'], 100);
+
+GSCWP_Ping::init();

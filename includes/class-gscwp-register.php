@@ -71,9 +71,11 @@ class GSCWP_Register
         }
 
         $instanceId = substr(trim((string) $response['body']['instance_id']), 0, 64);
+        $secret     = substr(trim((string) ($response['body']['secret'] ?? '')), 0, 64);
 
         update_option(GSCWP_OPTION_KEY, [
             'instance_id'     => $instanceId,
+            'secret'          => $secret,
             'site_url'        => $siteUrl,
             'registered_at'   => gmdate('c'),
             'plugin_version'  => GSCWP_VERSION,
