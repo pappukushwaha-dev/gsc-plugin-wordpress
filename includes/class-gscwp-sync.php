@@ -52,6 +52,8 @@ class GSCWP_Sync
 
         if (empty($response['ok']) || empty($response['body']['success'])) {
             $reason = $response['body']['error'] ?? ($response['error'] ?? 'HTTP ' . $response['status']);
+            error_log('gscwp DEBUG sync panel response: status=' . $response['status']
+                . ' body=' . substr(json_encode($response['body'] ?? null), 0, 200));
             return ['ok' => false, 'message' => (string) $reason];
         }
 
