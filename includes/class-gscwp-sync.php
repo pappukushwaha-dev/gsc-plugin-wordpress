@@ -61,6 +61,13 @@ class GSCWP_Sync
             'fetched_at'   => gmdate('c'),
         ], false);
 
+        // keep the panel-issued sync secret for the instant-sync REST route
+        $panelSyncSecret = (string) ($response['body']['sync_secret'] ?? '');
+        if ($panelSyncSecret !== '') {
+            $state['sync_secret'] = $panelSyncSecret;
+            update_option(GSCWP_OPTION_KEY, $state, false);
+        }
+
         return ['ok' => true, 'message' => 'synced'];
     }
 

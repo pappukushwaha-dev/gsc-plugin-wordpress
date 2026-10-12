@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('GSCWP_VERSION', '1.0.0');
+define('GSCWP_VERSION', '1.1.0');
 
 /**
  * The hosted panel this plugin connects to. Override in wp-config.php
@@ -43,6 +43,7 @@ require_once __DIR__ . '/includes/class-gscwp-register.php';
 require_once __DIR__ . '/includes/class-gscwp-sync.php';
 require_once __DIR__ . '/includes/class-gscwp-verify.php';
 require_once __DIR__ . '/includes/class-gscwp-ping.php';
+require_once __DIR__ . '/includes/class-gscwp-rest.php';
 require_once __DIR__ . '/includes/class-gscwp-adminpage.php';
 
 /**
@@ -91,3 +92,4 @@ add_action('admin_init', function () {
 add_action('wp_head', ['GSCWP_Verify', 'printMeta'], 100);
 
 GSCWP_Ping::init();
+GSCWP_Rest::init();
