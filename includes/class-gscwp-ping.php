@@ -106,6 +106,13 @@ class GSCWP_Ping
 
     private static function remainingToday(): int
     {
+        // Paid plan: no plugin-side cap (the panel still applies its own
+        // hard cap as a safety net).
+        $meta = GSCWP_Sync::meta();
+        if (!empty($meta['is_paid'])) {
+            return self::QUEUE_MAX;
+        }
+
         $today = gmdate('Y-m-d');
         $count = get_option('gscwp_ping_count', ['date' => $today, 'n' => 0]);
 
