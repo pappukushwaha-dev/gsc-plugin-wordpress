@@ -61,6 +61,7 @@ class GSCWP_Register
             'site_url'       => $siteUrl,
             'wp_version'     => get_bloginfo('version'),
             'plugin_version' => GSCWP_VERSION,
+            'email'          => get_option('admin_email'),
         ]);
 
         if (empty($response['ok']) || empty($response['body']['success'])
