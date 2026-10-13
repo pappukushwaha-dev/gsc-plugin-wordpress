@@ -54,7 +54,11 @@ class GSCWP_Sync
             $reason = $response['body']['error'] ?? ($response['error'] ?? 'HTTP ' . $response['status']);
             error_log('gscwp DEBUG sync panel response: status=' . $response['status']
                 . ' body=' . substr(json_encode($response['body'] ?? null), 0, 200));
-            return ['ok' => false, 'message' => (string) $reason];
+            /* status travels with the result: 401 means the panel no
+               longer knows this site (removed or secrets rotated),
+               which the settings page turns into a "disconnected"
+               state; a network failure (status 0) must not. */
+            return ['ok' => false, 'message' => (string) $reason, 'status' => (int) ($response['status'] ?? 0)];
         }
 
         update_option('gscwp_panel_meta', [

@@ -289,6 +289,23 @@ class GSCWP_AdminPage
 
         $token = $registered ? GSCWP_Verify::token() : '';
         $map   = $registered ? (string) (GSCWP_Sync::meta()['sitemap_url'] ?? '') : '';
+
+        /* Liveness check: the local option only proves this site
+           registered once. Ask the panel right now (sync() bypasses
+           the hourly cooldown), so the page reflects reality: a site
+           removed on the dashboard stops showing "Connected", and a
+           freshly re-verified token shows up without waiting an hour.
+           401 = the panel no longer knows this site; a network miss
+           (status 0) must NOT read as disconnected. */
+        $syncResult   = $registered ? GSCWP_Sync::sync() : null;
+        $disconnected = is_array($syncResult)
+            && empty($syncResult['ok'])
+            && (int) ($syncResult['status'] ?? 0) === 401;
+        $unreachable  = is_array($syncResult)
+            && empty($syncResult['ok'])
+            && (int) ($syncResult['status'] ?? 0) === 0;
+
+        $showConnected = $registered && !$disconnected;
         ?>
         <div class="wrap gscwp-wrap">
             <hr class="wp-header-end">
@@ -511,6 +528,13 @@ class GSCWP_AdminPage
             }
             ?>
 
+            <?php if ($disconnected): ?>
+                <div class="gscwp-alert is-error" style="margin-top:16px;">
+                    <span class="dashicons dashicons-warning"></span>
+                    <span><?php esc_html_e('The dashboard no longer recognizes this site - it may have been removed there. Re-register below to reconnect; your site keeps the same instance and history.', 'gscwp'); ?></span>
+                </div>
+            <?php endif; ?>
+
             <!-- hero -->
             <div class="gscwp-hero">
                 <div class="gscwp-hero-left">
@@ -527,21 +551,27 @@ class GSCWP_AdminPage
                                 <?php esc_html_e('Google Official Integration', 'gscwp') ?>
                             </span>
                             <span class="gscwp-pill">
-                                <i style="background:<?= $registered ? '#3ddc84' : '#ffb020' ?>;"></i>
-                                <?= $registered
-                                    ? esc_html__('Connected to dashboard', 'gscwp')
-                                    : esc_html__('Not connected yet', 'gscwp') ?>
+                                <i style="background:<?= $showConnected ? ($unreachable ? '#ffb020' : '#3ddc84') : ($disconnected ? '#ff6b6b' : '#ffb020') ?>;"></i>
+                                <?php if ($showConnected && $unreachable): ?>
+                                    <?= esc_html__('Dashboard unreachable - showing last known state', 'gscwp') ?>
+                                <?php elseif ($showConnected): ?>
+                                    <?= esc_html__('Connected to dashboard', 'gscwp') ?>
+                                <?php elseif ($disconnected): ?>
+                                    <?= esc_html__('Disconnected on the dashboard', 'gscwp') ?>
+                                <?php else: ?>
+                                    <?= esc_html__('Not connected yet', 'gscwp') ?>
+                                <?php endif; ?>
                             </span>
                         </p>
                     </div>
                 </div>
 
                 <div class="gscwp-hero-illus">
-                    <?= self::connectorIllustration($registered) ?>
+                    <?= self::connectorIllustration($showConnected) ?>
                 </div>
 
                 <div class="gscwp-hero-right">
-                    <?php if ($registered): ?>
+                    <?php if ($showConnected): ?>
                         <a class="gscwp-cta" href="<?= esc_url($connectUrl) ?>" target="_blank" rel="noopener">
                             <?php esc_html_e('Connect to Dashboard', 'gscwp'); ?>
                             <span class="arr" style="font-size:16px;line-height:1;">&rarr;</span>
@@ -551,7 +581,9 @@ class GSCWP_AdminPage
                             <input type="hidden" name="gscwp_action" value="register">
                             <input type="hidden" name="gscwp_nonce" value="<?= esc_attr($nonce) ?>">
                             <button type="submit" class="gscwp-cta">
-                                <?php esc_html_e('Register this site', 'gscwp'); ?>
+                                <?= $disconnected
+                                    ? esc_html__('Re-register to reconnect', 'gscwp')
+                                    : esc_html__('Register this site', 'gscwp') ?>
                                 <span class="arr" style="font-size:16px;line-height:1;">&rarr;</span>
                             </button>
                         </form>
@@ -559,7 +591,7 @@ class GSCWP_AdminPage
                 </div>
             </div>
 
-            <?php if ($registered): ?>
+            <?php if ($showConnected): ?>
                 <!-- live status cards -->
                 <h2 class="gscwp-sec-title">
                     <span class="dashicons dashicons-analytics"></span>
