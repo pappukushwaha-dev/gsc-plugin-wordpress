@@ -165,8 +165,8 @@ class GSCWP_AdminPage
      */
     private static function connectorIllustration(bool $connected): string
     {
-        $line   = $connected ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.6)';
-        $badge  = $connected ? '#3ddc84' : 'rgba(255,255,255,.35)';
+        $line  = $connected ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.6)';
+        $badge = $connected ? '#3ddc84' : 'rgba(255,255,255,.35)';
 
         return '<svg class="gscwp-link-art" viewBox="0 0 250 120" width="250" height="120" aria-hidden="true">
             <defs>
@@ -223,6 +223,56 @@ class GSCWP_AdminPage
         );
     }
 
+    /** One "what's inside" feature tile - the value story of the plugin. */
+    private static function featureTile(string $icon, string $tint, string $color, string $title, string $line): string
+    {
+        return sprintf(
+            '<div class="gscwp-feat">
+                <span class="gscwp-ic" style="background:%1$s;color:%2$s;">%3$s</span>
+                <div>
+                    <div class="gscwp-feat-t">%4$s</div>
+                    <div class="gscwp-feat-d">%5$s</div>
+                </div>
+            </div>',
+            $tint,
+            $color,
+            $icon,
+            esc_html($title),
+            esc_html($line)
+        );
+    }
+
+    /** The setup stepper shown before the site is connected. */
+    private static function setupStepper(): string
+    {
+        $steps = [
+            ['Register this site', 'One click below - your site gets a secure identity on the dashboard.', true],
+            ['Connect Google', 'Sign in with Google on the dashboard and pick your Search Console account.', false],
+            ['Automatic setup', 'Verification tag, sitemap and reports are handled for you - no code.', false],
+        ];
+
+        $html = '<div class="gscwp-steps-wrap">';
+        $html .= '<h2 class="gscwp-sec-title">' . esc_html__('Three steps and your site is on Search Console', 'gscwp') . '</h2>';
+        $html .= '<div class="gscwp-steps">';
+        foreach ($steps as $i => [$title, $line, $here]) {
+            $html .= sprintf(
+                '<div class="gscwp-step %1$s">
+                    <div class="gscwp-step-num">%2$d</div>
+                    <div class="gscwp-step-t">%3$s</div>
+                    <div class="gscwp-step-d">%4$s</div>
+                    %5$s
+                </div>',
+                $here ? 'is-here' : '',
+                $i + 1,
+                esc_html($title),
+                esc_html($line),
+                $here ? '<span class="gscwp-step-badge">' . esc_html__('You are here', 'gscwp') . '</span>' : ''
+            );
+        }
+        $html .= '</div></div>';
+        return $html;
+    }
+
     public static function render(): void
     {
         $state      = GSCWP_Register::getState();
@@ -241,6 +291,7 @@ class GSCWP_AdminPage
             <hr class="wp-header-end">
             <style>
                 .gscwp-wrap { max-width: 1080px; }
+
                 /* our own transient notices, styled to the page instead of
                    the stock WP notice block */
                 .gscwp-alert {
@@ -257,81 +308,165 @@ class GSCWP_AdminPage
                 }
                 .gscwp-alert button:hover { opacity: 1; }
 
+                /* entrance choreography */
+                @keyframes gscwpRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+                .gscwp-hero   { animation: gscwpRise .55s cubic-bezier(.22,1,.36,1) both; }
+                .gscwp-grid .gscwp-card:nth-child(1) { animation: gscwpRise .5s cubic-bezier(.22,1,.36,1) .08s both; }
+                .gscwp-grid .gscwp-card:nth-child(2) { animation: gscwpRise .5s cubic-bezier(.22,1,.36,1) .16s both; }
+                .gscwp-grid .gscwp-card:nth-child(3) { animation: gscwpRise .5s cubic-bezier(.22,1,.36,1) .24s both; }
+                .gscwp-panel  { animation: gscwpRise .5s cubic-bezier(.22,1,.36,1) .3s both; }
+
                 .gscwp-hero {
                     position: relative; overflow: hidden;
                     display: flex; align-items: center; justify-content: space-between;
                     gap: 24px; flex-wrap: wrap;
-                    margin-top: 16px; padding: 30px 34px; border-radius: 16px;
+                    margin-top: 16px; padding: 34px 38px; border-radius: 20px;
                     background: linear-gradient(120deg, #4c2bd4 0%, #652ec3 48%, #3b5bfd 100%);
-                    color: #fff; box-shadow: 0 14px 40px rgba(76, 43, 212, .28);
+                    color: #fff; box-shadow: 0 18px 50px rgba(76, 43, 212, .32);
                 }
+                /* slow drifting aurora blobs */
                 .gscwp-hero::before, .gscwp-hero::after {
                     content: ""; position: absolute; border-radius: 50%; pointer-events: none;
+                    filter: blur(2px);
                 }
                 .gscwp-hero::before {
-                    width: 300px; height: 300px; top: -140px; right: -70px;
-                    background: radial-gradient(circle, rgba(255,255,255,.16), transparent 70%);
+                    width: 340px; height: 340px; top: -150px; right: -80px;
+                    background: radial-gradient(circle, rgba(255,255,255,.18), transparent 68%);
+                    animation: gscwpFloat 9s ease-in-out infinite alternate;
                 }
                 .gscwp-hero::after {
-                    width: 220px; height: 220px; bottom: -120px; left: -60px;
-                    background: radial-gradient(circle, rgba(255,255,255,.10), transparent 70%);
+                    width: 260px; height: 260px; bottom: -130px; left: -70px;
+                    background: radial-gradient(circle, rgba(61,220,132,.20), transparent 70%);
+                    animation: gscwpFloat 11s ease-in-out infinite alternate-reverse;
+                }
+                @keyframes gscwpFloat {
+                    from { transform: translate(0, 0) scale(1); }
+                    to   { transform: translate(-26px, 18px) scale(1.12); }
                 }
                 .gscwp-hero > * { position: relative; z-index: 1; }
-                .gscwp-hero-left { display: flex; align-items: center; gap: 18px; min-width: 0; flex: 1; }
+                .gscwp-hero-left { display: flex; align-items: center; gap: 20px; min-width: 0; flex: 1; }
                 .gscwp-hero-mark {
-                    width: 58px; height: 58px; border-radius: 14px; flex: none;
+                    width: 62px; height: 62px; border-radius: 15px; flex: none;
                     background: rgba(255, 255, 255, .16);
                     display: flex; align-items: center; justify-content: center;
+                    border: 1px solid rgba(255,255,255,.25);
                 }
                 .gscwp-hero h1 {
-                    margin: 0; color: #fff; font-size: 24px; line-height: 1.25;
-                    display: flex; align-items: center; gap: 10px;
+                    margin: 0; color: #fff; font-size: 25px; line-height: 1.25;
+                    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
                 }
-                .gscwp-hero p { margin: 4px 0 0; font-size: 13.5px; color: rgba(255,255,255,.85); max-width: 470px; }
+                .gscwp-hero p { margin: 5px 0 0; font-size: 13.5px; color: rgba(255,255,255,.85); max-width: 470px; }
                 .gscwp-hero-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+
+                .gscwp-trust {
+                    display: inline-flex; align-items: center; gap: 7px;
+                    font-size: 11.5px; font-weight: 700; letter-spacing: .03em;
+                    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.32);
+                    padding: 5px 12px; border-radius: 999px; text-transform: uppercase;
+                }
                 .gscwp-pill {
                     display: inline-flex; align-items: center; gap: 8px;
                     padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
                     background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.35);
                 }
-                .gscwp-pill i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+                .gscwp-pill i { width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+                                box-shadow: 0 0 0 3px rgba(255,255,255,.12); }
                 .gscwp-cta {
                     display: inline-flex; align-items: center; gap: 9px;
                     background: #fff; color: #3d2a8c !important; text-decoration: none;
                     font-size: 14.5px; font-weight: 700;
-                    padding: 12px 26px; border-radius: 10px; border: 0; cursor: pointer;
+                    padding: 12px 26px; border-radius: 11px; border: 0; cursor: pointer;
                     box-shadow: 0 6px 18px rgba(0,0,0,.18);
                     transition: transform .15s ease, box-shadow .15s ease;
                 }
-                .gscwp-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.22); }
+                .gscwp-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.24); }
+                .gscwp-cta .arr { transition: transform .15s ease; }
+                .gscwp-cta:hover .arr { transform: translateX(4px); }
 
                 .gscwp-hero-illus {
                     background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.22);
-                    border-radius: 14px; padding: 8px 10px;
+                    border-radius: 16px; padding: 10px 12px;
+                    transition: transform .25s ease;
                 }
+                .gscwp-hero-illus:hover { transform: scale(1.02); }
                 .gscwp-dash { animation: gscwpDash 1.1s linear infinite; }
                 @keyframes gscwpDash { to { stroke-dashoffset: -20; } }
-                @media (prefers-reduced-motion: reduce) { .gscwp-dash { animation: none; } }
+                @media (prefers-reduced-motion: reduce) {
+                    .gscwp-dash { animation: none; }
+                    .gscwp-hero::before, .gscwp-hero::after { animation: none; }
+                    .gscwp-hero, .gscwp-grid .gscwp-card, .gscwp-panel { animation: none; }
+                }
 
                 .gscwp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
                 .gscwp-card {
-                    background: #fff; border: 1px solid #e2e6f0; border-radius: 12px;
+                    background: #fff; border: 1px solid #e2e6f0; border-radius: 14px;
                     padding: 18px 20px; box-shadow: 0 1px 2px rgba(16,24,40,.04);
+                    transition: transform .18s ease, box-shadow .18s ease;
+                }
+                .gscwp-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 10px 28px rgba(16,24,40,.10);
                 }
                 .gscwp-card-head { display: flex; align-items: center; gap: 10px; }
                 .gscwp-ic {
                     width: 34px; height: 34px; border-radius: 9px; flex: none;
                     display: flex; align-items: center; justify-content: center;
+                    transition: transform .18s ease;
                 }
+                .gscwp-card:hover .gscwp-ic { transform: scale(1.1); }
                 .gscwp-ic .dashicons { font-size: 19px; width: 19px; height: 19px; }
                 .gscwp-card-label { font-size: 12px; font-weight: 700; letter-spacing: .04em;
                                     text-transform: uppercase; color: #667085; flex: 1; }
                 .gscwp-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
                 .gscwp-card-value { margin-top: 12px; font-size: 14.5px; font-weight: 650; color: #101828; }
                 .gscwp-card-hint { margin-top: 4px; font-size: 12.5px; color: #667085; line-height: 1.5; }
+
+                /* "what's inside" strip */
+                .gscwp-sec-title {
+                    margin: 26px 0 0; font-size: 15px; color: #101828;
+                    display: flex; align-items: center; gap: 8px;
+                }
+                .gscwp-sec-title .dashicons { color: #652ec3; }
+                .gscwp-features {
+                    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 12px;
+                }
+                .gscwp-feat {
+                    display: flex; gap: 12px; align-items: flex-start;
+                    background: #fff; border: 1px solid #e2e6f0; border-radius: 12px;
+                    padding: 14px 15px; transition: transform .18s ease, box-shadow .18s ease;
+                }
+                .gscwp-feat:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(16,24,40,.08); }
+                .gscwp-feat-t { font-size: 13px; font-weight: 700; color: #101828; }
+                .gscwp-feat-d { margin-top: 3px; font-size: 12px; color: #667085; line-height: 1.5; }
+
+                /* setup stepper (pre-connection) */
+                .gscwp-steps-wrap {
+                    margin-top: 18px; background: #fff; border: 1px solid #e2e6f0;
+                    border-radius: 14px; padding: 22px 24px;
+                }
+                .gscwp-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+                .gscwp-step {
+                    position: relative; border: 1px solid #e2e6f0; border-radius: 12px;
+                    padding: 18px; text-align: center; background: #fafbfe;
+                }
+                .gscwp-step.is-here { border-color: #652ec3; background: #f6f2ff; }
+                .gscwp-step-num {
+                    width: 34px; height: 34px; border-radius: 50%; margin: 0 auto 10px;
+                    display: flex; align-items: center; justify-content: center;
+                    background: #e8eaf2; color: #667085; font-weight: 800; font-size: 14px;
+                }
+                .gscwp-step.is-here .gscwp-step-num { background: #652ec3; color: #fff; }
+                .gscwp-step-t { font-size: 13.5px; font-weight: 700; color: #101828; }
+                .gscwp-step-d { margin-top: 5px; font-size: 12px; color: #667085; line-height: 1.5; }
+                .gscwp-step-badge {
+                    display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 700;
+                    color: #652ec3; background: rgba(101,46,195,.10);
+                    border-radius: 999px; padding: 3px 10px; text-transform: uppercase; letter-spacing: .03em;
+                }
+
                 .gscwp-panel {
                     margin-top: 18px; background: #fff; border: 1px solid #e2e6f0;
-                    border-radius: 12px; padding: 20px 24px;
+                    border-radius: 14px; padding: 20px 24px;
                     display: flex; align-items: center; justify-content: space-between;
                     gap: 20px; flex-wrap: wrap;
                 }
@@ -345,8 +480,9 @@ class GSCWP_AdminPage
                 .gscwp-footer a { color: #652ec3; text-decoration: none; font-weight: 600; }
                 .gscwp-footer a:hover { text-decoration: underline; }
                 .gscwp-footer .sep { color: #d0d5dd; }
+
                 @media (max-width: 900px) {
-                    .gscwp-grid { grid-template-columns: 1fr; }
+                    .gscwp-grid, .gscwp-features, .gscwp-steps { grid-template-columns: 1fr; }
                     .gscwp-hero { padding: 24px; }
                     .gscwp-hero-right { align-items: flex-start; }
                     .gscwp-hero-illus { display: none; }
@@ -383,7 +519,10 @@ class GSCWP_AdminPage
                                          padding:3px 10px;vertical-align:middle;">v<?= esc_html(GSCWP_VERSION) ?></span>
                         </h1>
                         <p><?php esc_html_e('Google Search Console for your WordPress site - verification, sitemap and search reports, wired up automatically.', 'gscwp'); ?></p>
-                        <p style="margin-top:12px;">
+                        <p style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                            <span class="gscwp-trust"><?= self::googleMark(14) ?>
+                                <?php esc_html_e('Google Official Integration', 'gscwp') ?>
+                            </span>
                             <span class="gscwp-pill">
                                 <i style="background:<?= $registered ? '#3ddc84' : '#ffb020' ?>;"></i>
                                 <?= $registered
@@ -402,7 +541,7 @@ class GSCWP_AdminPage
                     <?php if ($registered): ?>
                         <a class="gscwp-cta" href="<?= esc_url($connectUrl) ?>" target="_blank" rel="noopener">
                             <?php esc_html_e('Connect to Dashboard', 'gscwp'); ?>
-                            <span style="font-size:16px;line-height:1;">&rarr;</span>
+                            <span class="arr" style="font-size:16px;line-height:1;">&rarr;</span>
                         </a>
                     <?php else: ?>
                         <form method="post">
@@ -410,7 +549,7 @@ class GSCWP_AdminPage
                             <input type="hidden" name="gscwp_nonce" value="<?= esc_attr($nonce) ?>">
                             <button type="submit" class="gscwp-cta">
                                 <?php esc_html_e('Register this site', 'gscwp'); ?>
-                                <span style="font-size:16px;line-height:1;">&rarr;</span>
+                                <span class="arr" style="font-size:16px;line-height:1;">&rarr;</span>
                             </button>
                         </form>
                     <?php endif; ?>
@@ -418,7 +557,11 @@ class GSCWP_AdminPage
             </div>
 
             <?php if ($registered): ?>
-                <!-- status cards -->
+                <!-- live status cards -->
+                <h2 class="gscwp-sec-title">
+                    <span class="dashicons dashicons-analytics"></span>
+                    <?php esc_html_e('Right now, on this site', 'gscwp'); ?>
+                </h2>
                 <div class="gscwp-grid">
                     <?php
                     if (GSCWP_Verify::seoPluginActive()) {
@@ -481,7 +624,43 @@ class GSCWP_AdminPage
                     );
                     ?>
                 </div>
+            <?php else: ?>
+                <?= self::setupStepper() ?>
             <?php endif; ?>
+
+            <!-- value strip: always visible -->
+            <h2 class="gscwp-sec-title">
+                <span class="dashicons dashicons-star-filled"></span>
+                <?php esc_html_e("Everything the plugin takes care of", 'gscwp'); ?>
+            </h2>
+            <div class="gscwp-features">
+                <?php
+                echo self::featureTile(
+                    '<span class="dashicons dashicons-shield" ></span>',
+                    'rgba(0,163,42,.10)', '#00a32a',
+                    __('Auto Verification', 'gscwp'),
+                    __('The Google meta tag injects itself into your site - no theme edits, no code.', 'gscwp')
+                );
+                echo self::featureTile(
+                    '<span class="dashicons dashicons-website"></span>',
+                    'rgba(59,91,253,.10)', '#3b5bfd',
+                    __('Sitemap Automation', 'gscwp'),
+                    __('Your sitemap is detected, reported and monitored on the dashboard.', 'gscwp')
+                );
+                echo self::featureTile(
+                    '<span class="dashicons dashicons-cloud"></span>',
+                    'rgba(14,165,233,.10)', '#0ea5e9',
+                    __('Content Pings', 'gscwp'),
+                    __('Every time you publish or update, Google is notified to crawl sooner.', 'gscwp')
+                );
+                echo self::featureTile(
+                    '<span class="dashicons dashicons-chart-line"></span>',
+                    'rgba(101,46,195,.10)', '#652ec3',
+                    __('Search Reports', 'gscwp'),
+                    __('Clicks, queries, pages and positions - live on your GSC dashboard.', 'gscwp')
+                );
+                ?>
+            </div>
 
             <!-- connection panel -->
             <div class="gscwp-panel">
