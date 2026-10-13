@@ -278,10 +278,13 @@ class GSCWP_AdminPage
         $state      = GSCWP_Register::getState();
         $registered = ($state['instance_id'] ?? '') !== '';
         $nonce      = wp_create_nonce('gscwp_action');
+        /* The dashboard entry, not the wizard: finished users land on
+           their dashboard directly, and the dashboard's setup gate
+           forwards anyone with steps pending to the exact wizard step
+           they stopped at. */
         $connectUrl = $registered
-            ? GSCWP_ApiClient::panelUrl('setup-wizard.php')
+            ? GSCWP_ApiClient::panelUrl('dashboard.php')
                 . '?instance_id=' . rawurlencode((string) $state['instance_id'])
-                . '&site=' . rawurlencode((string) home_url())
             : '';
 
         $token = $registered ? GSCWP_Verify::token() : '';
