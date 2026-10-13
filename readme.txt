@@ -4,7 +4,7 @@ Tags: google search console, verification, sitemap, indexing, seo
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 
 Connects your WordPress site to the GSC dashboard - Google verification, sitemap and search reports in one place.
@@ -19,9 +19,12 @@ Connects your WordPress site to the GSC dashboard - Google verification, sitemap
 
 1. Upload the plugin folder to /wp-content/plugins/ (or install the zip).
 2. Activate the plugin.
-3. Open Settings > GSC Plugin and press Connect to Dashboard.
+3. Open GSC Plugin from the admin sidebar and press Connect to Dashboard.
 
 == Changelog ==
+
+= 1.1.1 =
+* Sidebar menu instead of Settings, Plugins row links, redesigned admin page.
 
 = 1.0.0 =
 * First release: site registration, dashboard connection, verification and sitemap support.
