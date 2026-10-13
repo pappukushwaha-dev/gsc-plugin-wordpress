@@ -8,6 +8,13 @@
  * - The page itself: a premium-styled overview with the dashboard
  *   connection front and centre.
  *
+ * Notices: WordPress injects every admin notice after the first
+ * heading it finds inside .wrap. This page's heading lives inside the
+ * gradient hero, so without the hr.wp-header-end marker below, WP
+ * would drop foreign notices into the middle of the hero and tear the
+ * layout. The marker (plus the custom gscwp-alert styling for our own
+ * transient notices) keeps every message above the page content.
+ *
  * Every action is nonce checked and capability checked; every value
  * printed is escaped.
  */
@@ -139,15 +146,58 @@ class GSCWP_AdminPage
         }
     }
 
-    /** Google "G" mark for the hero, inline so nothing external loads. */
-    private static function googleMark(): string
+    /** Google "G" mark, inline so nothing external loads. */
+    private static function googleMark(int $size = 30): string
     {
-        return '<svg viewBox="0 0 48 48" width="30" height="30" aria-hidden="true">'
+        return '<svg viewBox="0 0 48 48" width="' . $size . '" height="' . $size . '" aria-hidden="true">'
             . '<path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.2-.1-2.4-.4-3.5z"/>'
             . '<path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34.3 6.1 29.4 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>'
             . '<path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>'
             . '<path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.2 5.2C36.9 39.2 44 34 44 24c0-1.2-.1-2.4-.4-3.5z"/>'
             . '</svg>';
+    }
+
+    /**
+     * The connector illustration for the hero: WordPress on the left,
+     * Google on the right, an animated dashed link between them and a
+     * live check once connected. Inline SVG - no external asset, crisp
+     * on every display.
+     */
+    private static function connectorIllustration(bool $connected): string
+    {
+        $line   = $connected ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.6)';
+        $badge  = $connected ? '#3ddc84' : 'rgba(255,255,255,.35)';
+
+        return '<svg class="gscwp-link-art" viewBox="0 0 250 120" width="250" height="120" aria-hidden="true">
+            <defs>
+                <linearGradient id="gscwpNodeA" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e8edff"/>
+                </linearGradient>
+            </defs>
+            <!-- WordPress node -->
+            <g>
+                <circle cx="40" cy="60" r="27" fill="url(#gscwpNodeA)"/>
+                <circle cx="40" cy="60" r="27" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/>
+                <circle cx="40" cy="60" r="19" fill="none" stroke="#21759b" stroke-width="2.4"/>
+                <text x="40" y="66" text-anchor="middle" font-family="Georgia, serif"
+                      font-size="19" font-weight="700" fill="#21759b">W</text>
+            </g>
+            <!-- animated link line -->
+            <path class="gscwp-dash" d="M70 60 H 180" fill="none" stroke="' . $line . '"
+                  stroke-width="2.6" stroke-linecap="round" stroke-dasharray="1 9"/>
+            <!-- connector badge in the middle -->
+            <circle cx="125" cy="60" r="15" fill="rgba(255,255,255,.18)" stroke="rgba(255,255,255,.6)" stroke-width="1.5"/>
+            <path d="M118 60h14M120 56h10M120 64h10" stroke="#fff" stroke-width="2.2"
+                  stroke-linecap="round" fill="none"/>
+            <!-- status badge on the link -->
+            <circle cx="125" cy="37" r="9" fill="' . $badge . '"/>'
+            . ($connected
+                ? '<path d="M121 37l3 3 5-6" stroke="#14532d" stroke-width="2.2" stroke-linecap="round"
+                      stroke-linejoin="round" fill="none"/>'
+                : '<circle cx="125" cy="37" r="3.2" fill="#4c2bd4"/>')
+            . '<!-- Google node -->
+            <g transform="translate(184,34)">' . self::googleMark(52) . '</g>
+        </svg>';
     }
 
     /** One status card for the overview grid. */
@@ -188,16 +238,46 @@ class GSCWP_AdminPage
         $map   = $registered ? (string) (GSCWP_Sync::meta()['sitemap_url'] ?? '') : '';
         ?>
         <div class="wrap gscwp-wrap">
+            <hr class="wp-header-end">
             <style>
                 .gscwp-wrap { max-width: 1080px; }
+                /* our own transient notices, styled to the page instead of
+                   the stock WP notice block */
+                .gscwp-alert {
+                    display: flex; align-items: center; gap: 10px;
+                    margin: 14px 0 0; padding: 12px 16px; border-radius: 10px;
+                    font-size: 13.5px; font-weight: 600;
+                }
+                .gscwp-alert.is-success { background: #ecfdf3; color: #067647; border: 1px solid #abefc6; }
+                .gscwp-alert.is-error   { background: #fef3f2; color: #b42318; border: 1px solid #fecdca; }
+                .gscwp-alert .dashicons { font-size: 18px; width: 18px; height: 18px; }
+                .gscwp-alert button {
+                    margin-left: auto; background: none; border: 0; cursor: pointer;
+                    font-size: 18px; line-height: 1; color: inherit; opacity: .6; padding: 0 2px;
+                }
+                .gscwp-alert button:hover { opacity: 1; }
+
                 .gscwp-hero {
+                    position: relative; overflow: hidden;
                     display: flex; align-items: center; justify-content: space-between;
                     gap: 24px; flex-wrap: wrap;
                     margin-top: 16px; padding: 30px 34px; border-radius: 16px;
                     background: linear-gradient(120deg, #4c2bd4 0%, #652ec3 48%, #3b5bfd 100%);
                     color: #fff; box-shadow: 0 14px 40px rgba(76, 43, 212, .28);
                 }
-                .gscwp-hero-left { display: flex; align-items: center; gap: 18px; min-width: 0; }
+                .gscwp-hero::before, .gscwp-hero::after {
+                    content: ""; position: absolute; border-radius: 50%; pointer-events: none;
+                }
+                .gscwp-hero::before {
+                    width: 300px; height: 300px; top: -140px; right: -70px;
+                    background: radial-gradient(circle, rgba(255,255,255,.16), transparent 70%);
+                }
+                .gscwp-hero::after {
+                    width: 220px; height: 220px; bottom: -120px; left: -60px;
+                    background: radial-gradient(circle, rgba(255,255,255,.10), transparent 70%);
+                }
+                .gscwp-hero > * { position: relative; z-index: 1; }
+                .gscwp-hero-left { display: flex; align-items: center; gap: 18px; min-width: 0; flex: 1; }
                 .gscwp-hero-mark {
                     width: 58px; height: 58px; border-radius: 14px; flex: none;
                     background: rgba(255, 255, 255, .16);
@@ -207,7 +287,7 @@ class GSCWP_AdminPage
                     margin: 0; color: #fff; font-size: 24px; line-height: 1.25;
                     display: flex; align-items: center; gap: 10px;
                 }
-                .gscwp-hero p { margin: 4px 0 0; font-size: 13.5px; color: rgba(255,255,255,.85); max-width: 520px; }
+                .gscwp-hero p { margin: 4px 0 0; font-size: 13.5px; color: rgba(255,255,255,.85); max-width: 470px; }
                 .gscwp-hero-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
                 .gscwp-pill {
                     display: inline-flex; align-items: center; gap: 8px;
@@ -224,6 +304,15 @@ class GSCWP_AdminPage
                     transition: transform .15s ease, box-shadow .15s ease;
                 }
                 .gscwp-cta:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.22); }
+
+                .gscwp-hero-illus {
+                    background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.22);
+                    border-radius: 14px; padding: 8px 10px;
+                }
+                .gscwp-dash { animation: gscwpDash 1.1s linear infinite; }
+                @keyframes gscwpDash { to { stroke-dashoffset: -20; } }
+                @media (prefers-reduced-motion: reduce) { .gscwp-dash { animation: none; } }
+
                 .gscwp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
                 .gscwp-card {
                     background: #fff; border: 1px solid #e2e6f0; border-radius: 12px;
@@ -260,16 +349,24 @@ class GSCWP_AdminPage
                     .gscwp-grid { grid-template-columns: 1fr; }
                     .gscwp-hero { padding: 24px; }
                     .gscwp-hero-right { align-items: flex-start; }
+                    .gscwp-hero-illus { display: none; }
                 }
             </style>
 
             <?php
             $notice = get_transient('gscwp_admin_notice');
             if (is_array($notice)) {
+                $isErr = ($notice['type'] === 'error');
                 printf(
-                    '<div class="notice notice-%1$s is-dismissible"><p>%2$s</p></div>',
-                    $notice['type'] === 'error' ? 'error' : 'success',
-                    esc_html((string) $notice['msg'])
+                    '<div class="gscwp-alert %1$s">
+                        <span class="dashicons %2$s"></span>
+                        <span>%3$s</span>
+                        <button type="button" onclick="this.parentNode.remove()" aria-label="%4$s">&times;</button>
+                    </div>',
+                    $isErr ? 'is-error' : 'is-success',
+                    $isErr ? 'dashicons-warning' : 'dashicons-yes-alt',
+                    esc_html((string) $notice['msg']),
+                    esc_attr__('Dismiss', 'gscwp')
                 );
                 delete_transient('gscwp_admin_notice');
             }
@@ -286,15 +383,22 @@ class GSCWP_AdminPage
                                          padding:3px 10px;vertical-align:middle;">v<?= esc_html(GSCWP_VERSION) ?></span>
                         </h1>
                         <p><?php esc_html_e('Google Search Console for your WordPress site - verification, sitemap and search reports, wired up automatically.', 'gscwp'); ?></p>
+                        <p style="margin-top:12px;">
+                            <span class="gscwp-pill">
+                                <i style="background:<?= $registered ? '#3ddc84' : '#ffb020' ?>;"></i>
+                                <?= $registered
+                                    ? esc_html__('Connected to dashboard', 'gscwp')
+                                    : esc_html__('Not connected yet', 'gscwp') ?>
+                            </span>
+                        </p>
                     </div>
                 </div>
+
+                <div class="gscwp-hero-illus">
+                    <?= self::connectorIllustration($registered) ?>
+                </div>
+
                 <div class="gscwp-hero-right">
-                    <span class="gscwp-pill">
-                        <i style="background:<?= $registered ? '#3ddc84' : '#ffb020' ?>;"></i>
-                        <?= $registered
-                            ? esc_html__('Connected to dashboard', 'gscwp')
-                            : esc_html__('Not connected yet', 'gscwp') ?>
-                    </span>
                     <?php if ($registered): ?>
                         <a class="gscwp-cta" href="<?= esc_url($connectUrl) ?>" target="_blank" rel="noopener">
                             <?php esc_html_e('Connect to Dashboard', 'gscwp'); ?>
