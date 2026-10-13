@@ -308,13 +308,14 @@ class GSCWP_AdminPage
         $googleOn = $registered && !empty(GSCWP_Sync::meta()['google_connected']);
 
         /* Site linked but the Google account was disconnected on the
-           dashboard: a distinct state with its own way back. */
+           dashboard: a distinct state with its own way back. The
+           wizard opens at step 1 so the journey reads in order. */
         $googleOff = $showConnected && !$googleOn && !$unreachable;
 
         $reconnectUrl = $registered
             ? GSCWP_ApiClient::panelUrl('setup-wizard.php')
                 . '?instance_id=' . rawurlencode((string) $state['instance_id'])
-                . '&step=2'
+                . '&step=1'
             : '';
         ?>
         <div class="wrap gscwp-wrap">
