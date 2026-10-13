@@ -2,7 +2,7 @@
 /**
  * Plugin Name: GSC Plugin
  * Description: Connects your WordPress site to the GSC dashboard - Google verification, sitemap and search reports in one place.
- * Version: 1.1.2
+ * Version: 1.1.3
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: MakkPress Apps
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('GSCWP_VERSION', '1.1.2');
+define('GSCWP_VERSION', '1.1.3');
 
 /**
  * The hosted panel this plugin connects to. Override in wp-config.php

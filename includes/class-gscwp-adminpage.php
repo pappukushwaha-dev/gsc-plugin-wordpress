@@ -287,16 +287,12 @@ class GSCWP_AdminPage
                 . '?instance_id=' . rawurlencode((string) $state['instance_id'])
             : '';
 
-        $token = $registered ? GSCWP_Verify::token() : '';
-        $map   = $registered ? (string) (GSCWP_Sync::meta()['sitemap_url'] ?? '') : '';
-
-        /* Liveness check: the local option only proves this site
-           registered once. Ask the panel right now (sync() bypasses
-           the hourly cooldown), so the page reflects reality: a site
-           removed on the dashboard stops showing "Connected", and a
-           freshly re-verified token shows up without waiting an hour.
-           401 = the panel no longer knows this site; a network miss
-           (status 0) must NOT read as disconnected. */
+        /* Liveness check FIRST, then read the cached meta it refreshes:
+           asking the panel right now (sync() bypasses the hourly
+           cooldown) means the cards below describe this very moment -
+           a re-verified token shows up on this page load, not the
+           next one. 401 = the panel no longer knows this site; a
+           network miss (status 0) must NOT read as disconnected. */
         $syncResult   = $registered ? GSCWP_Sync::sync() : null;
         $disconnected = is_array($syncResult)
             && empty($syncResult['ok'])
@@ -306,6 +302,20 @@ class GSCWP_AdminPage
             && (int) ($syncResult['status'] ?? 0) === 0;
 
         $showConnected = $registered && !$disconnected;
+
+        $token = $registered ? GSCWP_Verify::token() : '';
+        $map   = $registered ? (string) (GSCWP_Sync::meta()['sitemap_url'] ?? '') : '';
+        $googleOn = $registered && !empty(GSCWP_Sync::meta()['google_connected']);
+
+        /* Site linked but the Google account was disconnected on the
+           dashboard: a distinct state with its own way back. */
+        $googleOff = $showConnected && !$googleOn && !$unreachable;
+
+        $reconnectUrl = $registered
+            ? GSCWP_ApiClient::panelUrl('setup-wizard.php')
+                . '?instance_id=' . rawurlencode((string) $state['instance_id'])
+                . '&step=2'
+            : '';
         ?>
         <div class="wrap gscwp-wrap">
             <hr class="wp-header-end">
@@ -551,13 +561,15 @@ class GSCWP_AdminPage
                                 <?php esc_html_e('Google Official Integration', 'gscwp') ?>
                             </span>
                             <span class="gscwp-pill">
-                                <i style="background:<?= $showConnected ? ($unreachable ? '#ffb020' : '#3ddc84') : ($disconnected ? '#ff6b6b' : '#ffb020') ?>;"></i>
-                                <?php if ($showConnected && $unreachable): ?>
+                                <i style="background:<?= $disconnected ? '#ff6b6b' : ($showConnected ? ($googleOff || $unreachable ? '#ffb020' : '#3ddc84') : '#ffb020') ?>;"></i>
+                                <?php if ($disconnected): ?>
+                                    <?= esc_html__('Disconnected on the dashboard', 'gscwp') ?>
+                                <?php elseif ($showConnected && $googleOff): ?>
+                                    <?= esc_html__('Google disconnected - reconnect to resume reports', 'gscwp') ?>
+                                <?php elseif ($showConnected && $unreachable): ?>
                                     <?= esc_html__('Dashboard unreachable - showing last known state', 'gscwp') ?>
                                 <?php elseif ($showConnected): ?>
                                     <?= esc_html__('Connected to dashboard', 'gscwp') ?>
-                                <?php elseif ($disconnected): ?>
-                                    <?= esc_html__('Disconnected on the dashboard', 'gscwp') ?>
                                 <?php else: ?>
                                     <?= esc_html__('Not connected yet', 'gscwp') ?>
                                 <?php endif; ?>
@@ -571,7 +583,12 @@ class GSCWP_AdminPage
                 </div>
 
                 <div class="gscwp-hero-right">
-                    <?php if ($showConnected): ?>
+                    <?php if ($showConnected && $googleOff): ?>
+                        <a class="gscwp-cta" href="<?= esc_url($reconnectUrl) ?>" target="_blank" rel="noopener">
+                            <?php esc_html_e('Reconnect Google', 'gscwp'); ?>
+                            <span class="arr" style="font-size:16px;line-height:1;">&rarr;</span>
+                        </a>
+                    <?php elseif ($showConnected): ?>
                         <a class="gscwp-cta" href="<?= esc_url($connectUrl) ?>" target="_blank" rel="noopener">
                             <?php esc_html_e('Connect to Dashboard', 'gscwp'); ?>
                             <span class="arr" style="font-size:16px;line-height:1;">&rarr;</span>

@@ -4,7 +4,7 @@ Tags: google search console, verification, sitemap, indexing, seo
 Requires at least: 5.8
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 
 Connects your WordPress site to the GSC dashboard - Google verification, sitemap and search reports in one place.
@@ -22,6 +22,9 @@ Connects your WordPress site to the GSC dashboard - Google verification, sitemap
 3. Open GSC Plugin from the admin sidebar and press Connect to Dashboard.
 
 == Changelog ==
+
+= 1.1.3 =
+* Google-disconnected state on the page, and the status cards now read the fresh sync instead of the previous one.
 
 = 1.1.2 =
 * Status now checks the dashboard live: removed sites show as disconnected, fresh tokens appear without waiting an hour.

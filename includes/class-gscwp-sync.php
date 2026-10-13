@@ -62,9 +62,10 @@ class GSCWP_Sync
         }
 
         update_option('gscwp_panel_meta', [
-            'verify_token' => (string) ($response['body']['verify_token'] ?? ''),
-            'sitemap_url'  => (string) ($response['body']['sitemap_url'] ?? ''),
-            'fetched_at'   => gmdate('c'),
+            'verify_token'    => (string) ($response['body']['verify_token'] ?? ''),
+            'sitemap_url'     => (string) ($response['body']['sitemap_url'] ?? ''),
+            'google_connected'=> !empty($response['body']['google_connected']),
+            'fetched_at'      => gmdate('c'),
         ], false);
 
         // keep the panel-issued sync secret for the instant-sync REST route
